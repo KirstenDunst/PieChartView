@@ -80,12 +80,13 @@ static CGRect myFrame;
     return [[PieChartView alloc]initWithFrame:frame];
 }
 
-/**
- *  画饼状图
- *  @param x_names      x轴值的所有值名称
- *  @param targetValues 所有目标值
+/*
+   画饼状图
+   @param x_values      x轴值的所有值名称
+   @param targetValues 所有目标值
  */
--(void)drawPieChartViewWithX_Value_Names:(NSMutableArray *)x_names TargetValues:(NSMutableArray *)targetValues{
+
+-(void)drawPieChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues{
     CGPoint point = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
     CGFloat startAngle = 0;
     CGFloat endAngle;
@@ -116,7 +117,7 @@ static CGRect myFrame;
         CGFloat X = point.x + 120*cos(startAngle+(endAngle-startAngle)/2) - 10;
         CGFloat Y = point.y + 110*sin(startAngle+(endAngle-startAngle)/2) - 10;
         UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(X, Y, 30, 20)];
-        label.text = x_names[i];
+        label.text = x_values[i];
         label.font = [UIFont systemFontOfSize:11];
         label.textColor = RGBACOLOR(13, 195, 176,1);
         [self addSubview:label];
@@ -137,8 +138,11 @@ static CGRect myFrame;
     
 }
 
-//画折线图
--(void)drawLineChartViewWithX_Value_Names:(NSMutableArray *)x_names TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType{
+/*
+  画折线图
+ */
+
+-(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType{
     
     static CGFloat maxY = 0;
     
@@ -148,7 +152,7 @@ static CGRect myFrame;
     }
     
     //1.画坐标轴
-    [self drawXYLine:x_names WithMaxY:maxY];
+    [self drawXYLine:x_values WithMaxY:maxY]; //如果需要这里替换成调用画柱状图的方法，合二为一
     
     //2.获取目标值点坐标
     NSMutableArray *allPoints = [NSMutableArray array];
@@ -227,6 +231,7 @@ static CGRect myFrame;
 /*
  画坐标轴
  */
+
 - (void)drawXYLine:(NSMutableArray *)x_names WithMaxY:(CGFloat)maxY{
     
     UIBezierPath *path = [UIBezierPath bezierPath];
@@ -296,10 +301,11 @@ static CGRect myFrame;
     
 }
 
-/**
- *  画柱状图
+/*
+   画柱状图
  */
--(void)drawBarChartViewWithX_Value_Names:(NSMutableArray *)x_names TargetValues:(NSMutableArray *)targetValues{
+
+-(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues{
     
     static CGFloat maxY = 0;
     
@@ -308,11 +314,11 @@ static CGRect myFrame;
         maxY = MAX(maxY, doubleValue);
     }
     //1.画坐标轴
-    [self drawXYLine:x_names WithMaxY:maxY];
+    [self drawXYLine:x_values WithMaxY:maxY];   //根据需要同上处理
     
     //2.每一个目标值点坐标
     for (int i=0; i<targetValues.count; i++) {
-        CGFloat doubleValue = [targetValues[i] floatValue]; //目标值放大两倍
+        CGFloat doubleValue = [targetValues[i] floatValue]; //目标值转换
         CGFloat X = MARGIN + MARGIN*(i+1)+5;
         CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetWidth(myFrame)-2*MARGIN)/maxY*doubleValue);
         UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-MARGIN/2, Y, MARGIN-10, (CGRectGetWidth(myFrame)-2*MARGIN)/maxY*doubleValue)];
