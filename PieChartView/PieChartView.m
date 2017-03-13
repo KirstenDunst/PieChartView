@@ -69,8 +69,8 @@ static CGRect myFrame;
 - (instancetype)initWithFrame:(CGRect)frame{
     self = [super initWithFrame:frame];
     if (self) {    
-        self.frame = frame;
-        myFrame = frame;
+//        self.frame = frame;
+        myFrame = CGRectMake(0, 0, frame.size.width, frame.size.height);
     }
     return self;
 }
@@ -142,7 +142,7 @@ static CGRect myFrame;
   画折线图
  */
 
--(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType{
+-(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsCombine:(BOOL)isCombine{
     
     static CGFloat maxY = 0;
     
@@ -151,15 +151,17 @@ static CGRect myFrame;
         maxY = MAX(maxY, doubleValue);
     }
     
-    //1.画坐标轴
-    [self drawXYLine:x_values WithMaxY:maxY]; //如果需要这里替换成调用画柱状图的方法，合二为一
+    if (!isCombine) {
+        //1.画坐标轴
+        [self drawXYLine:x_values WithMaxY:maxY]; //如果需要这里替换成调用画柱状图的方法，合二为一
+    }
     
     //2.获取目标值点坐标
     NSMutableArray *allPoints = [NSMutableArray array];
     for (int i=0; i<targetValues.count; i++) {
         CGFloat doubleValue = [targetValues[i] floatValue]; //
         CGFloat X = MARGIN + MARGIN*(i+1);
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetWidth(myFrame)-2*MARGIN)/maxY*doubleValue);
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/maxY*doubleValue);
         CGPoint point = CGPointMake(X,Y);
         UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(point.x-1, point.y-1, 2.5, 2.5) cornerRadius:2.5];
         CAShapeLayer *layer = [CAShapeLayer layer];
@@ -226,12 +228,83 @@ static CGRect myFrame;
         }
     }
 }
-   
-    
+
+
 /*
- 画坐标轴
+   画柱状图
  */
 
+-(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsCombine:(BOOL)isCombine{
+    
+    static CGFloat maxY = 0;
+    
+    for (NSString *numberStr in targetValues) {
+        CGFloat doubleValue = [numberStr floatValue];
+        maxY = MAX(maxY, doubleValue);
+    }
+    
+    if (!isCombine) {
+        //1.画坐标轴
+        [self drawXYLine:x_values WithMaxY:maxY];   //根据需要同上处理
+    }
+    
+    //2.每一个目标值点坐标
+    for (int i=0; i<targetValues.count; i++) {
+        CGFloat doubleValue = [targetValues[i] floatValue]; //目标值转换
+        CGFloat X = MARGIN + MARGIN*(i+1)+5;
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)*(doubleValue/maxY));
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-MARGIN/2, Y, MARGIN-10, (CGRectGetHeight(myFrame)-2*MARGIN)/maxY*doubleValue)];
+        CAShapeLayer *shapeLayer = [CAShapeLayer layer];
+        shapeLayer.path = path.CGPath;
+        shapeLayer.strokeColor = [UIColor clearColor].CGColor;
+        shapeLayer.fillColor = RandomColor.CGColor;
+        shapeLayer.borderWidth = 2.0;
+        [self.layer addSublayer:shapeLayer];
+        
+        //3.添加文字
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(X-MARGIN/2, Y-20, MARGIN-10, 20)];
+        label.text = targetValues[i];
+        label.textColor = [UIColor purpleColor];
+        label.textAlignment = NSTextAlignmentCenter;
+        label.font = [UIFont systemFontOfSize:10];
+        [self addSubview:label];
+    }
+}
+
+
+-(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType{
+    [self drawLineChartViewWithXNames_Value:x_values TargetValues:targetValues LineType:lineType WithIsCombine:NO];
+}
+-(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues {
+    [self drawBarGraphViewWithXNames_Value:x_values TargetValues:targetValues WithIsCombine:NO];
+}
+
+/*
+ 画柱状图和折线图的合成图
+ */
+- (void)drawLineAndBarGraphViewWithNames_Values:(NSMutableArray *)x_values LeftValues:(NSMutableArray *)leftTargetValues AndRightValues:(NSMutableArray *)rightTargetValues LineType:(LineType) lineType{
+    
+    static CGFloat leftMaxY = 0;
+    for (NSString *numberStr in leftTargetValues) {
+        CGFloat doubleValue = [numberStr floatValue];
+        leftMaxY = MAX(leftMaxY, doubleValue);
+    }
+    
+    static CGFloat rightMaxY = 0;
+    for (NSString *numberStr in rightTargetValues) {
+        CGFloat doubleValue = [numberStr floatValue];
+        rightMaxY = MAX(rightMaxY, doubleValue);
+    }
+    
+    [self drawXYLine:x_values WithLeftMaxY:leftMaxY andRightMaxY:rightMaxY];
+    
+    [self drawBarGraphViewWithXNames_Value:nil TargetValues:leftTargetValues WithIsCombine:YES];
+    [self drawLineChartViewWithXNames_Value:nil TargetValues:rightTargetValues LineType:lineType WithIsCombine:YES];
+}
+
+/*
+ 画普通坐标轴
+ */
 - (void)drawXYLine:(NSMutableArray *)x_names WithMaxY:(CGFloat)maxY{
     
     UIBezierPath *path = [UIBezierPath bezierPath];
@@ -252,7 +325,7 @@ static CGRect myFrame;
     [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+10, CGRectGetHeight(myFrame)-MARGIN-5)];
     [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+10, CGRectGetHeight(myFrame)-MARGIN)];
     [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+10, CGRectGetHeight(myFrame)-MARGIN+5)];
-
+    
     //3.添加索引格
     //X轴
     for (int i=0; i<x_names.count; i++) {
@@ -261,7 +334,7 @@ static CGRect myFrame;
         [path moveToPoint:point];
         [path addLineToPoint:CGPointMake(point.x, point.y-3)];
     }
-    //Y轴（实际长度为200,此处比例缩小一倍使用）
+    //Y轴
     for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
         CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
         CGPoint point = CGPointMake(MARGIN,Y);
@@ -281,7 +354,7 @@ static CGRect myFrame;
         [self addSubview:textLabel];
     }
     //Y轴
-    for (int i=0; i<11; i++) {
+    for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
         CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
         UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, Y-5, MARGIN, 10)];
         textLabel.text = [NSString stringWithFormat:@"%.0f",(maxY/Y_EVERY_MARGIN)*i];
@@ -300,44 +373,94 @@ static CGRect myFrame;
     [self.layer addSublayer:shapeLayer];
     
 }
-
 /*
-   画柱状图
+ 画双y轴的坐标轴
  */
-
--(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues{
+- (void)drawXYLine:(NSMutableArray *)x_names WithLeftMaxY:(CGFloat)leftMaxY andRightMaxY:(CGFloat)rightMaxY{
     
-    static CGFloat maxY = 0;
+    UIBezierPath *path = [UIBezierPath bezierPath];
     
-    for (NSString *numberStr in targetValues) {
-        CGFloat doubleValue = [numberStr floatValue];
-        maxY = MAX(maxY, doubleValue);
+    //1.x y轴的直线
+    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(MARGIN, MARGIN-10)];
+    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
+    //2.添加箭头
+    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
+    [path addLineToPoint:CGPointMake(MARGIN-5, MARGIN+5-10)];
+    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
+    [path addLineToPoint:CGPointMake(MARGIN+5, MARGIN+5-10)];
+    
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN-5, MARGIN-10+5)];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN-5, MARGIN-10+5)];
+    
+    //3.添加索引格
+    //X轴
+    for (int i=0; i<x_names.count; i++) {
+        CGFloat X = MARGIN + MARGIN*(i+1);
+        CGPoint point = CGPointMake(X,CGRectGetHeight(myFrame)-MARGIN);
+        [path moveToPoint:point];
+        [path addLineToPoint:CGPointMake(point.x, point.y-3)];
     }
-    //1.画坐标轴
-    [self drawXYLine:x_values WithMaxY:maxY];   //根据需要同上处理
-    
-    //2.每一个目标值点坐标
-    for (int i=0; i<targetValues.count; i++) {
-        CGFloat doubleValue = [targetValues[i] floatValue]; //目标值转换
-        CGFloat X = MARGIN + MARGIN*(i+1)+5;
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetWidth(myFrame)-2*MARGIN)/maxY*doubleValue);
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-MARGIN/2, Y, MARGIN-10, (CGRectGetWidth(myFrame)-2*MARGIN)/maxY*doubleValue)];
-        CAShapeLayer *shapeLayer = [CAShapeLayer layer];
-        shapeLayer.path = path.CGPath;
-        shapeLayer.strokeColor = [UIColor clearColor].CGColor;
-        shapeLayer.fillColor = RandomColor.CGColor;
-        shapeLayer.borderWidth = 2.0;
-        [self.layer addSublayer:shapeLayer];
+    //Y轴（实际长度为200,此处比例缩小一倍使用）
+    for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
+        CGFloat leftY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
+        CGPoint point = CGPointMake(MARGIN,leftY);
+        [path moveToPoint:point];
+        [path addLineToPoint:CGPointMake(point.x+3, point.y)];
         
-        //3.添加文字
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(X-MARGIN/2, Y-20, MARGIN-10, 20)];
-        label.text = targetValues[i];
-        label.textColor = [UIColor purpleColor];
-        label.textAlignment = NSTextAlignmentCenter;
-        label.font = [UIFont systemFontOfSize:10];
-        [self addSubview:label];
+        CGFloat rightY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
+        CGPoint pointRight = CGPointMake(CGRectGetWidth(myFrame)-MARGIN,rightY);
+        [path moveToPoint:pointRight];
+        [path addLineToPoint:CGPointMake(pointRight.x-3, pointRight.y)];
     }
+    
+    //4.添加索引格文字
+    //X轴
+    for (int i=0; i<x_names.count; i++) {
+        CGFloat X = MARGIN + 15 + MARGIN*i;
+        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(X, CGRectGetHeight(myFrame)-MARGIN, MARGIN, 20)];
+        textLabel.text = x_names[i];
+        textLabel.font = [UIFont systemFontOfSize:10];
+        textLabel.textAlignment = NSTextAlignmentCenter;
+        textLabel.textColor = [UIColor blueColor];
+        [self addSubview:textLabel];
+    }
+    //Y轴
+    for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
+        CGFloat leftY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
+        UILabel *leftTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, leftY-5, MARGIN, 10)];
+        leftTextLabel.text = [NSString stringWithFormat:@"%.0f",(leftMaxY/Y_EVERY_MARGIN)*i];
+        leftTextLabel.font = [UIFont systemFontOfSize:10];
+        leftTextLabel.textAlignment = NSTextAlignmentCenter;
+        leftTextLabel.textColor = [UIColor redColor];
+        [self addSubview:leftTextLabel];
+        
+        CGFloat rightY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
+        UILabel *rightTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetWidth(myFrame)-MARGIN, rightY-5, MARGIN, 10)];
+        rightTextLabel.text = [NSString stringWithFormat:@"%.0f",(rightMaxY/Y_EVERY_MARGIN)*i];
+        rightTextLabel.font = [UIFont systemFontOfSize:10];
+        rightTextLabel.textAlignment = NSTextAlignmentCenter;
+        rightTextLabel.textColor = [UIColor redColor];
+        [self addSubview:rightTextLabel];
+        
+    }
+    
+    //5.渲染路径
+    CAShapeLayer *shapeLayer = [CAShapeLayer layer];
+    shapeLayer.path = path.CGPath;
+    shapeLayer.strokeColor = [UIColor blackColor].CGColor;
+    shapeLayer.fillColor = [UIColor clearColor].CGColor;
+    shapeLayer.borderWidth = 2.0;
+    [self.layer addSublayer:shapeLayer];
+    
 }
+
+
 
 
 /*

@@ -22,20 +22,23 @@
     
     NSMutableArray *x_names = @[@"语文",@"数学",@"英语",@"物理",@"化学",@"生物",@"政治",@"历史",@"地理"].copy;
     NSMutableArray *targets = @[@"20",@"40",@"20",@"50",@"30",@"90",@"30",@"100",@"70"].copy;
+    NSMutableArray *rightTargets = @[@"50",@"90",@"60",@"50",@"80",@"90",@"10",@"100",@"70"].copy;
     
     
-    
-    PieChartView *pieView = [PieChartView PieViewWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.width)];
+    PieChartView *pieView = [PieChartView PieViewWithFrame:CGRectMake(0, 180, self.view.frame.size.width, 300)];
 //    [[PieChartView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.width)];
     
 //    //饼状图
-//    [pieView drawPieChartViewWithX_Value_Names:x_names TargetValues:targets];
+//    [pieView drawPieChartViewWithXNames_Value:x_names TargetValues:targets];
     
     //折线图
-    [pieView drawLineChartViewWithX_Value_Names:x_names TargetValues:targets LineType:LineType_Straight];
+//    [pieView drawLineChartViewWithXNames_Value:x_names TargetValues:targets LineType:LineType_Straight];
     
     //柱状图
-//    [pieView drawBarChartViewWithX_Value_Names:x_names TargetValues:targets];
+//    [pieView drawBarGraphViewWithXNames_Value:x_names TargetValues:targets];
+    
+    //折线图和柱状图的合并
+    [pieView drawLineAndBarGraphViewWithNames_Values:x_names LeftValues:targets AndRightValues:rightTargets LineType:LineType_Straight];
     
     pieView.backgroundColor = [UIColor colorWithRed:236/255.0 green:236/255.0 blue:236/255.0 alpha:1];
     [self.view addSubview:pieView];
