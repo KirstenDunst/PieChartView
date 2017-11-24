@@ -29,16 +29,16 @@
 //    [[PieChartView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.width)];
     
 //    //饼状图
-//    [pieView drawPieChartViewWithXNames_Value:x_names TargetValues:targets];
+//    [pieView drawPieChartViewWithXNames_Value:x_names TargetValues:targets WithIsAutoXMagin:YES];
     
     //折线图
-//    [pieView drawLineChartViewWithXNames_Value:x_names TargetValues:targets LineType:LineType_Straight];
+//    [pieView drawLineChartViewWithXNames_Value:x_names TargetValues:targets LineType:LineType_Straight WithIsAutoXMagin:YES];
     
     //柱状图
-//    [pieView drawBarGraphViewWithXNames_Value:x_names TargetValues:targets];
+//    [pieView drawBarGraphViewWithXNames_Value:x_names TargetValues:targets WithIsAutoXMagin:YES];
     
     //折线图和柱状图的合并
-    [pieView drawLineAndBarGraphViewWithNames_Values:x_names LeftValues:targets AndRightValues:rightTargets LineType:LineType_Straight];
+    [pieView drawLineAndBarGraphViewWithNames_Values:x_names LeftValues:targets AndRightValues:rightTargets LineType:LineType_Straight WithIsAutoXMagin:YES];
     
     pieView.backgroundColor = [UIColor colorWithRed:236/255.0 green:236/255.0 blue:236/255.0 alpha:1];
     [self.view addSubview:pieView];
