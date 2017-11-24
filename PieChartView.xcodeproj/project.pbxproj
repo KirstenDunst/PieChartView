@@ -165,7 +165,7 @@
 				TargetAttributes = {
 					1F65B91C1E61863A00844A76 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = BQ9TFQKXJU;
+						DevelopmentTeam = J34X25TCYP;
 						ProvisioningStyle = Automatic;
 					};
 					1F65B9351E61863B00844A76 = {
@@ -357,10 +357,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = BQ9TFQKXJU;
+				DEVELOPMENT_TEAM = J34X25TCYP;
 				INFOPLIST_FILE = PieChartView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.zssy.AM.PieChartView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zssy.AM.text;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -369,10 +369,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = BQ9TFQKXJU;
+				DEVELOPMENT_TEAM = J34X25TCYP;
 				INFOPLIST_FILE = PieChartView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.zssy.AM.PieChartView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zssy.AM.text;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

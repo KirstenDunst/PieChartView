@@ -143,7 +143,7 @@ static CGRect myFrame;
   画折线图
  */
 
--(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsCombine:(BOOL)isCombine WithIsAutoXMagin:(BOOL)isAuto{
+-(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsCombine:(BOOL)isCombine WithXMagin:(CGFloat)xMagin{
     
     static CGFloat maxY = 0;
     
@@ -154,14 +154,9 @@ static CGRect myFrame;
     
     if (!isCombine) {
         //1.画坐标轴
-        [self drawXYLine:x_values WithMaxY:maxY WithIsAutoXMagin:isAuto]; //如果需要这里替换成调用画柱状图的方法，合二为一
+        [self drawXYLine:x_values WithMaxY:maxY WithXMagin:xMagin]; //如果需要这里替换成调用画柱状图的方法，合二为一
     }
-    static CGFloat xMagin = 0;
-    if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
-    }else{
-        xMagin = X_MARGIN;
-    }
+    
     //2.获取目标值点坐标
     NSMutableArray *allPoints = [NSMutableArray array];
     for (int i=0; i<targetValues.count; i++) {
@@ -240,7 +235,7 @@ static CGRect myFrame;
    画柱状图
  */
 
--(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsCombine:(BOOL)isCombine WithIsAutoXMagin:(BOOL)isAuto{
+-(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsCombine:(BOOL)isCombine WithXMagin:(CGFloat)xMagin{
     
     static CGFloat maxY = 0;
     
@@ -251,15 +246,9 @@ static CGRect myFrame;
     
     if (!isCombine) {
         //1.画坐标轴
-        [self drawXYLine:x_values WithMaxY:maxY WithIsAutoXMagin:isAuto];   //根据需要同上处理
+        [self drawXYLine:x_values WithMaxY:maxY WithXMagin:xMagin];   //根据需要同上处理
     }
-    
-    static CGFloat xMagin = 0;
-    if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
-    }else{
-        xMagin = X_MARGIN;
-    }
+
 //    小矩形的宽度
     static CGFloat barlittleWidth = 20.0;
     //2.每一个目标值点坐标
@@ -287,10 +276,22 @@ static CGRect myFrame;
 
 
 -(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsAutoXMagin:(BOOL)isAuto{
-    [self drawLineChartViewWithXNames_Value:x_values TargetValues:targetValues LineType:lineType WithIsCombine:NO WithIsAutoXMagin:isAuto];
+    static CGFloat xMagin = 0;
+    if (isAuto) {
+        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
+    }else{
+        xMagin = X_MARGIN;
+    }
+    [self drawLineChartViewWithXNames_Value:x_values TargetValues:targetValues LineType:lineType WithIsCombine:NO WithXMagin:xMagin];
 }
 -(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsAutoXMagin:(BOOL)isAuto{
-    [self drawBarGraphViewWithXNames_Value:x_values TargetValues:targetValues WithIsCombine:NO WithIsAutoXMagin:isAuto];
+    static CGFloat xMagin = 0;
+    if (isAuto) {
+        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
+    }else{
+        xMagin = X_MARGIN;
+    }
+    [self drawBarGraphViewWithXNames_Value:x_values TargetValues:targetValues WithIsCombine:NO WithXMagin:xMagin];
 }
 
 /*
@@ -310,16 +311,22 @@ static CGRect myFrame;
         rightMaxY = MAX(rightMaxY, doubleValue);
     }
     
-    [self drawXYLine:x_values WithLeftMaxY:leftMaxY andRightMaxY:rightMaxY WithIsAutoXMagin:isAuto];
+    static CGFloat xMagin = 0;
+    if (isAuto) {
+        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/(x_values.count+1);
+    }else{
+        xMagin = X_MARGIN;
+    }
+    [self drawXYLine:x_values WithLeftMaxY:leftMaxY andRightMaxY:rightMaxY WithXMagin:xMagin];
     
-    [self drawBarGraphViewWithXNames_Value:nil TargetValues:leftTargetValues WithIsCombine:YES WithIsAutoXMagin:isAuto];
-    [self drawLineChartViewWithXNames_Value:nil TargetValues:rightTargetValues LineType:lineType WithIsCombine:YES WithIsAutoXMagin:isAuto];
+    [self drawBarGraphViewWithXNames_Value:x_values TargetValues:leftTargetValues WithIsCombine:YES WithXMagin:xMagin];
+    [self drawLineChartViewWithXNames_Value:x_values TargetValues:rightTargetValues LineType:lineType WithIsCombine:YES WithXMagin:xMagin];
 }
 
 /*
  画普通坐标轴
  */
-- (void)drawXYLine:(NSMutableArray *)x_names WithMaxY:(CGFloat)maxY WithIsAutoXMagin:(BOOL)isAuto{
+- (void)drawXYLine:(NSMutableArray *)x_names WithMaxY:(CGFloat)maxY WithXMagin:(CGFloat)xMagin{
     
     UIBezierPath *path = [UIBezierPath bezierPath];
     
@@ -327,7 +334,7 @@ static CGRect myFrame;
     [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
     [path addLineToPoint:CGPointMake(MARGIN, MARGIN-10)];
     [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+10, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
     
     //2.添加箭头
     [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
@@ -335,17 +342,10 @@ static CGRect myFrame;
     [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
     [path addLineToPoint:CGPointMake(MARGIN+5, MARGIN+5-10)];
     
-    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+10, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+10, CGRectGetHeight(myFrame)-MARGIN-5)];
-    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+10, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+10, CGRectGetHeight(myFrame)-MARGIN+5)];
-    
-    static CGFloat xMagin = 0;
-    if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_names.count;
-    }else{
-        xMagin = X_MARGIN;
-    }
+    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+15, CGRectGetHeight(myFrame)-MARGIN-5)];
+    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
+    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+15, CGRectGetHeight(myFrame)-MARGIN+5)];
     
     //3.添加索引格
     //X轴
@@ -397,7 +397,7 @@ static CGRect myFrame;
 /*
  画双y轴的坐标轴
  */
-- (void)drawXYLine:(NSMutableArray *)x_names WithLeftMaxY:(CGFloat)leftMaxY andRightMaxY:(CGFloat)rightMaxY WithIsAutoXMagin:(BOOL)isAuto{
+- (void)drawXYLine:(NSMutableArray *)x_names WithLeftMaxY:(CGFloat)leftMaxY andRightMaxY:(CGFloat)rightMaxY WithXMagin:(CGFloat)xMagin{
     
     UIBezierPath *path = [UIBezierPath bezierPath];
     
@@ -419,12 +419,6 @@ static CGRect myFrame;
     [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
     [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN-5, MARGIN-10+5)];
     
-    static CGFloat xMagin = 0;
-    if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_names.count;
-    }else{
-        xMagin = X_MARGIN;
-    }
     //3.添加索引格
     //X轴
     for (int i=0; i<x_names.count; i++) {
