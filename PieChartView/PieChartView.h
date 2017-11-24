@@ -36,14 +36,15 @@ typedef NS_ENUM(NSInteger, LineType) {
    @param x_values      x轴值的所有值名称
    @param targetValues 所有目标值
    @param lineType     直线类型
+   @param isAuto       是否自动计算x轴间的间距
  */
--(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType;
+-(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsAutoXMagin:(BOOL)isAuto;
 
 
 /*
    画柱状图
  */
--(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues;
+-(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsAutoXMagin:(BOOL)isAuto;
 
 
 
@@ -51,8 +52,9 @@ typedef NS_ENUM(NSInteger, LineType) {
  @param  x_values             x轴值的所有名字
  @param  leftTargetValues     左侧显示值的所有目标值
  @param  rightTargetValues    右侧显示值的所有目标值
+ @param  isAuto               是否自动生成x轴数据间的间距
  */
-- (void)drawLineAndBarGraphViewWithNames_Values:(NSMutableArray *)x_values LeftValues:(NSMutableArray *)leftTargetValues AndRightValues:(NSMutableArray *)rightTargetValues LineType:(LineType) lineType;
+- (void)drawLineAndBarGraphViewWithNames_Values:(NSMutableArray *)x_values LeftValues:(NSMutableArray *)leftTargetValues AndRightValues:(NSMutableArray *)rightTargetValues LineType:(LineType) lineType WithIsAutoXMagin:(BOOL)isAuto;
 
 
 

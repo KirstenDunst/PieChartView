@@ -14,7 +14,7 @@
 		1F65B92D1E61863B00844A76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1F65B92C1E61863B00844A76 /* Assets.xcassets */; };
 		1F65B9301E61863B00844A76 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1F65B92E1E61863B00844A76 /* LaunchScreen.storyboard */; };
 		1F65B93B1E61863B00844A76 /* PieChartViewUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F65B93A1E61863B00844A76 /* PieChartViewUITests.m */; };
-		1F65B9471E61876400844A76 /* PieChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F65B9461E61876400844A76 /* PieChartView.m */; };
+		1F9FD1591FC801920017AE72 /* PieChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FD1581FC801920017AE72 /* PieChartView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,8 +41,8 @@
 		1F65B9361E61863B00844A76 /* PieChartViewUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PieChartViewUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F65B93A1E61863B00844A76 /* PieChartViewUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PieChartViewUITests.m; sourceTree = "<group>"; };
 		1F65B93C1E61863B00844A76 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1F65B9451E61876400844A76 /* PieChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PieChartView.h; sourceTree = "<group>"; };
-		1F65B9461E61876400844A76 /* PieChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PieChartView.m; sourceTree = "<group>"; };
+		1F9FD1571FC801920017AE72 /* PieChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PieChartView.h; sourceTree = "<group>"; };
+		1F9FD1581FC801920017AE72 /* PieChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PieChartView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,8 +88,8 @@
 				1F65B9241E61863B00844A76 /* AppDelegate.m */,
 				1F65B9261E61863B00844A76 /* ViewController.h */,
 				1F65B9271E61863B00844A76 /* ViewController.m */,
-				1F65B9451E61876400844A76 /* PieChartView.h */,
-				1F65B9461E61876400844A76 /* PieChartView.m */,
+				1F9FD1571FC801920017AE72 /* PieChartView.h */,
+				1F9FD1581FC801920017AE72 /* PieChartView.m */,
 				1F65B9291E61863B00844A76 /* Main.storyboard */,
 				1F65B92C1E61863B00844A76 /* Assets.xcassets */,
 				1F65B92E1E61863B00844A76 /* LaunchScreen.storyboard */,
@@ -220,7 +220,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1F65B9471E61876400844A76 /* PieChartView.m in Sources */,
+				1F9FD1591FC801920017AE72 /* PieChartView.m in Sources */,
 				1F65B9281E61863B00844A76 /* ViewController.m in Sources */,
 				1F65B9251E61863B00844A76 /* AppDelegate.m in Sources */,
 				1F65B9221E61863B00844A76 /* main.m in Sources */,
@@ -420,6 +420,7 @@
 				1F65B9411E61863B00844A76 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		1F65B9421E61863B00844A76 /* Build configuration list for PBXNativeTarget "PieChartViewUITests" */ = {
 			isa = XCConfigurationList;
@@ -428,6 +429,7 @@
 				1F65B9441E61863B00844A76 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
