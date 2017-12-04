@@ -88,6 +88,7 @@ static CGRect myFrame;
  */
 
 -(void)drawPieChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues{
+    [self setNeedsDisplay];
     CGPoint point = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
     CGFloat startAngle = 0;
     CGFloat endAngle;
@@ -276,6 +277,7 @@ static CGRect myFrame;
 
 
 -(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsAutoXMagin:(BOOL)isAuto{
+    [self setNeedsDisplay];
     static CGFloat xMagin = 0;
     if (isAuto) {
         xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
@@ -285,6 +287,7 @@ static CGRect myFrame;
     [self drawLineChartViewWithXNames_Value:x_values TargetValues:targetValues LineType:lineType WithIsCombine:NO WithXMagin:xMagin];
 }
 -(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsAutoXMagin:(BOOL)isAuto{
+    [self setNeedsDisplay];
     static CGFloat xMagin = 0;
     if (isAuto) {
         xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
@@ -298,7 +301,7 @@ static CGRect myFrame;
  画柱状图和折线图的合成图
  */
 - (void)drawLineAndBarGraphViewWithNames_Values:(NSMutableArray *)x_values LeftValues:(NSMutableArray *)leftTargetValues AndRightValues:(NSMutableArray *)rightTargetValues LineType:(LineType) lineType WithIsAutoXMagin:(BOOL)isAuto{
-    
+    [self setNeedsDisplay];
     static CGFloat leftMaxY = 0;
     for (NSString *numberStr in leftTargetValues) {
         CGFloat doubleValue = [numberStr floatValue];
@@ -479,6 +482,10 @@ static CGRect myFrame;
     shapeLayer.borderWidth = 2.0;
     [self.layer addSublayer:shapeLayer];
     
+}
+- (void)setNeedsDisplay{
+    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [self.layer.sublayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
 }
 
 
