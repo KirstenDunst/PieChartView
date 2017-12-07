@@ -282,7 +282,7 @@ static CGRect myFrame;
 //            static CGFloat test = 0.01f;
 //            if (test >= 0.3)
 //            {
-//                [CATransaction setDisableActions:YES];
+//                [CATransaction setDisableActions:NO];
 //                gradientLayer2.locations  = @[@0,@0.75, @1];  //如果最后状态需要一个波浪递进的样式渐度带设为：@[@0,@0.75, @1];
 //                [timer invalidate];
 //                timer = nil;
