@@ -257,6 +257,8 @@ static CGRect myFrame;
         CGFloat doubleValue = [targetValues[i] floatValue]; //目标值转换
         CGFloat X = MARGIN + xMagin*(i+1);
         CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)*(doubleValue/maxY));
+        
+//        part1，简单的随机色柱状图
         UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-2*MARGIN)/maxY*doubleValue)];
         CAShapeLayer *shapeLayer = [CAShapeLayer layer];
         shapeLayer.path = path.CGPath;
@@ -264,6 +266,37 @@ static CGRect myFrame;
         shapeLayer.fillColor = RandomColor.CGColor;
         shapeLayer.borderWidth = 2.0;
         [self.layer addSublayer:shapeLayer];
+        
+        
+////        part2，柱状图渐变色，并且能够动画增长处理效果（需要的时候把上面part1屏蔽掉，这里打开）
+//        //这里制作颜色变化渐变适配（没有要求的话上面的就可以了）
+//        CAGradientLayer *gradientLayer2 =  [CAGradientLayer layer];
+//        [gradientLayer2 setLocations:@[@1,@1,@1]];
+//        gradientLayer2.frame = CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-2*MARGIN)*(doubleValue/maxY));
+//        [gradientLayer2 setColors:[NSArray arrayWithObjects:(id)[[UIColor whiteColor] CGColor], (id)[RandomColor CGColor],nil]];
+//        [gradientLayer2 setStartPoint:CGPointMake(0.5, 0)];
+//        [gradientLayer2 setEndPoint:CGPointMake(0.5, 1)];
+//        [self.layer addSublayer:gradientLayer2];
+//
+//        NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+//            static CGFloat test = 0.01f;
+//            if (test >= 0.3)
+//            {
+//                [CATransaction setDisableActions:YES];
+//                gradientLayer2.locations  = @[@0,@0.75, @1];  //如果最后状态需要一个波浪递进的样式渐度带设为：@[@0,@0.75, @1];
+//                [timer invalidate];
+//                timer = nil;
+//            }
+//            else
+//            {
+//                [CATransaction setDisableActions:NO];
+//                gradientLayer2.locations  = @[@(1-test*3),@(1-test*2), @1];
+//            }
+//            test += 0.01f;
+//        }];
+//        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+        
+        
         
         //3.添加文字
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(X-xMagin/2, Y-20, xMagin, 20)];
