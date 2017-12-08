@@ -8,8 +8,11 @@
 
 #import "PieChartView.h"
 
+#define MARGINRIGHT         25   //坐标轴与画布右边的距离
+#define MARGINLEFT          45   //坐标轴与画布左边的距离
+#define MARGINBOTTOM        30   // 坐标轴与画布底部的间距
+#define MARGINTOP           30   // 坐标轴与画布顶部的间距
 
-#define MARGIN            30   // 坐标轴与画布间距
 #define Y_EVERY_MARGIN    5   // y轴的间隔数量
 #define X_MARGIN          30  //默认情况下的x轴两数据之间的间隔,如果自动生成x轴坐标间的间距为yes，那么这个不起效果
 
@@ -20,7 +23,10 @@ static CGRect myFrame;
 // 颜色RGB
 #define RGBACOLOR(r, g, b,a)  [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:a]
 
+@interface PieChartView()
 
+@property(nonatomic,assign)dispatch_source_t timer;
+@end
 /*
  UIBezierPath ：画贝塞尔曲线的path类
  UIBezierPath定义 ： 贝赛尔曲线的每一个顶点都有两个控制点，用于控制在该顶点两侧的曲线的弧度。
@@ -69,8 +75,8 @@ static CGRect myFrame;
 
 - (instancetype)initWithFrame:(CGRect)frame{
     self = [super initWithFrame:frame];
-    if (self) {    
-//        self.frame = frame;
+    if (self) {
+        //        self.frame = frame;
         myFrame = CGRectMake(0, 0, frame.size.width, frame.size.height);
     }
     return self;
@@ -82,9 +88,9 @@ static CGRect myFrame;
 }
 
 /*
-   画饼状图
-   @param x_values      x轴值的所有值名称
-   @param targetValues 所有目标值
+ 画饼状图
+ @param x_values      x轴值的所有值名称
+ @param targetValues 所有目标值
  */
 
 -(void)drawPieChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues{
@@ -124,7 +130,6 @@ static CGRect myFrame;
         label.textColor = RGBACOLOR(13, 195, 176,1);
         [self addSubview:label];
         
-        
         //渲染
         CAShapeLayer *shapeLayer=[CAShapeLayer layer];
         shapeLayer.lineWidth = 1;
@@ -133,15 +138,12 @@ static CGRect myFrame;
         [self.layer addSublayer:shapeLayer];
         
         startAngle = endAngle;
-        
     }
-    
-    
     
 }
 
 /*
-  画折线图
+ 画折线图
  */
 
 -(void)drawLineChartViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues LineType:(LineType) lineType WithIsCombine:(BOOL)isCombine WithXMagin:(CGFloat)xMagin{
@@ -152,6 +154,9 @@ static CGRect myFrame;
         CGFloat doubleValue = [numberStr floatValue];
         maxY = MAX(maxY, doubleValue);
     }
+    if (maxY == 0) {
+        maxY = 1.0;
+    }
     
     if (!isCombine) {
         //1.画坐标轴
@@ -161,9 +166,9 @@ static CGRect myFrame;
     //2.获取目标值点坐标
     NSMutableArray *allPoints = [NSMutableArray array];
     for (int i=0; i<targetValues.count; i++) {
-        CGFloat doubleValue = [targetValues[i] floatValue]; //
-        CGFloat X = MARGIN + xMagin*(i+1);
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/maxY*doubleValue);
+        CGFloat doubleValue = [targetValues[i] floatValue];
+        CGFloat X = MARGINLEFT + xMagin*i + xMagin/2;
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINBOTTOM-MARGINTOP)/maxY*doubleValue);
         CGPoint point = CGPointMake(X,Y);
         UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(point.x-1, point.y-1, 2.5, 2.5) cornerRadius:2.5];
         CAShapeLayer *layer = [CAShapeLayer layer];
@@ -215,17 +220,17 @@ static CGRect myFrame;
         
         if (i==0) {
             CGPoint NowPoint = [allPoints[0] CGPointValue];
-            label.text = targetValues[i];
+            label.text = [targetValues[i] stringValue];
             label.frame = CGRectMake(NowPoint.x-xMagin/2, NowPoint.y-20, xMagin, 20);
             PrePonit = NowPoint;
         }else{
             CGPoint NowPoint = [allPoints[i] CGPointValue];
-            if (NowPoint.y<PrePonit.y) {  //文字置于点上方
+            if ((NowPoint.y<PrePonit.y) || [[targetValues[i] stringValue] isEqualToString:@"0"]) {  //文字置于点上方
                 label.frame = CGRectMake(NowPoint.x-xMagin/2, NowPoint.y-20, xMagin, 20);
             }else{ //文字置于点下方
                 label.frame = CGRectMake(NowPoint.x-xMagin/2, NowPoint.y, xMagin, 20);
             }
-            label.text = targetValues[i];
+            label.text = [targetValues[i] stringValue];
             PrePonit = NowPoint;
         }
     }
@@ -233,33 +238,35 @@ static CGRect myFrame;
 
 
 /*
-   画柱状图
+ 画柱状图
  */
 
 -(void)drawBarGraphViewWithXNames_Value:(NSMutableArray *)x_values TargetValues:(NSMutableArray *)targetValues WithIsCombine:(BOOL)isCombine WithXMagin:(CGFloat)xMagin{
-    
     static CGFloat maxY = 0;
     
     for (NSString *numberStr in targetValues) {
         CGFloat doubleValue = [numberStr floatValue];
         maxY = MAX(maxY, doubleValue);
     }
+    if (maxY == 0) {
+        maxY = 1.0;
+    }
     
     if (!isCombine) {
         //1.画坐标轴
         [self drawXYLine:x_values WithMaxY:maxY WithXMagin:xMagin];   //根据需要同上处理
     }
-
-//    小矩形的宽度
-    static CGFloat barlittleWidth = 20.0;
+    
+    //    小矩形的宽度
+    static CGFloat barlittleWidth = 15.0;
     //2.每一个目标值点坐标
     for (int i=0; i<targetValues.count; i++) {
         CGFloat doubleValue = [targetValues[i] floatValue]; //目标值转换
-        CGFloat X = MARGIN + xMagin*(i+1);
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)*(doubleValue/maxY));
+        CGFloat X = MARGINLEFT + xMagin*i + xMagin/2;
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)*(doubleValue/maxY));
         
-//        part1，简单的随机色柱状图
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-2*MARGIN)/maxY*doubleValue)];
+//        part1
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/maxY*doubleValue)];
         CAShapeLayer *shapeLayer = [CAShapeLayer layer];
         shapeLayer.path = path.CGPath;
         shapeLayer.strokeColor = [UIColor clearColor].CGColor;
@@ -267,19 +274,18 @@ static CGRect myFrame;
         shapeLayer.borderWidth = 2.0;
         [self.layer addSublayer:shapeLayer];
         
-        
-////        part2，柱状图渐变色，并且能够动画增长处理效果（需要的时候把上面part1屏蔽掉，这里打开）
-//        //这里制作颜色变化渐变适配（没有要求的话上面的就可以了）
+//        part2
+//        //这里制作颜色变化渐变适配（没有要求的话上面的part1就可以了）
 //        CAGradientLayer *gradientLayer2 =  [CAGradientLayer layer];
 //        [gradientLayer2 setLocations:@[@1,@1,@1]];
-//        gradientLayer2.frame = CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-2*MARGIN)*(doubleValue/maxY));
+//        gradientLayer2.frame = CGRectMake(X-barlittleWidth/2, Y, barlittleWidth, (CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)*(doubleValue/maxY));
 //        [gradientLayer2 setColors:[NSArray arrayWithObjects:(id)[[UIColor whiteColor] CGColor], (id)[RandomColor CGColor],nil]];
 //        [gradientLayer2 setStartPoint:CGPointMake(0.5, 0)];
 //        [gradientLayer2 setEndPoint:CGPointMake(0.5, 1)];
 //        [self.layer addSublayer:gradientLayer2];
 //
 //        NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer * _Nonnull timer) {
-//            static CGFloat test = 0.01f;
+//            static CGFloat test = 0.02f;
 //            if (test >= 0.3)
 //            {
 //                [CATransaction setDisableActions:NO];
@@ -290,20 +296,18 @@ static CGRect myFrame;
 //            else
 //            {
 //                [CATransaction setDisableActions:NO];
-//                gradientLayer2.locations  = @[@(1-test*3),@(1-test*2), @1];
+//                gradientLayer2.locations  = @[@(1-test*3),@(1-test), @1];
 //            }
-//            test += 0.01f;
+//            test += 0.02f;
 //        }];
-//        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
-        
-        
+//        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
         
         //3.添加文字
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(X-xMagin/2, Y-20, xMagin, 20)];
-        label.text = targetValues[i];
+        label.text = [targetValues[i] stringValue];
         label.textColor = [UIColor purpleColor];
         label.textAlignment = NSTextAlignmentCenter;
-        label.font = [UIFont systemFontOfSize:10];
+        label.font = [UIFont systemFontOfSize:8];
         [self addSubview:label];
     }
 }
@@ -313,7 +317,7 @@ static CGRect myFrame;
     [self setNeedsDisplay];
     static CGFloat xMagin = 0;
     if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
+        xMagin = (CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT)/x_values.count;
     }else{
         xMagin = X_MARGIN;
     }
@@ -323,7 +327,7 @@ static CGRect myFrame;
     [self setNeedsDisplay];
     static CGFloat xMagin = 0;
     if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/x_values.count;
+        xMagin = (CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT)/x_values.count;
     }else{
         xMagin = X_MARGIN;
     }
@@ -349,7 +353,7 @@ static CGRect myFrame;
     
     static CGFloat xMagin = 0;
     if (isAuto) {
-        xMagin = (CGRectGetWidth(myFrame)-2*MARGIN)/(x_values.count+1);
+        xMagin = (CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT)/(x_values.count+1);
     }else{
         xMagin = X_MARGIN;
     }
@@ -367,34 +371,34 @@ static CGRect myFrame;
     UIBezierPath *path = [UIBezierPath bezierPath];
     
     //1.x y轴的直线
-    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT, MARGINTOP-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT+10, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
     
     //2.添加箭头
-    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(MARGIN-5, MARGIN+5-10)];
-    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(MARGIN+5, MARGIN+5-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT-5, MARGINTOP+5-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+5, MARGINTOP+5-10)];
     
-    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+15, CGRectGetHeight(myFrame)-MARGIN-5)];
-    [path moveToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN+15, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN-5+15, CGRectGetHeight(myFrame)-MARGIN+5)];
+    [path moveToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT+10, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT-5+10, CGRectGetHeight(myFrame)-MARGINBOTTOM-5)];
+    [path moveToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT+10, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT-5+10, CGRectGetHeight(myFrame)-MARGINBOTTOM+5)];
     
     //3.添加索引格
     //X轴
     for (int i=0; i<x_names.count; i++) {
-        CGFloat X = MARGIN + xMagin*(i+1);
-        CGPoint point = CGPointMake(X,CGRectGetHeight(myFrame)-MARGIN);
+        CGFloat X = MARGINLEFT + xMagin*i + xMagin/2;
+        CGPoint point = CGPointMake(X,CGRectGetHeight(myFrame)-MARGINBOTTOM);
         [path moveToPoint:point];
         [path addLineToPoint:CGPointMake(point.x, point.y-3)];
     }
     //Y轴
     for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        CGPoint point = CGPointMake(MARGIN,Y);
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/Y_EVERY_MARGIN)*i;
+        CGPoint point = CGPointMake(MARGINLEFT,Y);
         [path moveToPoint:point];
         [path addLineToPoint:CGPointMake(point.x+3, point.y)];
     }
@@ -402,9 +406,10 @@ static CGRect myFrame;
     //4.添加索引格文字
     //X轴
     for (int i=0; i<x_names.count; i++) {
-        CGFloat X = MARGIN + xMagin/2 + xMagin*i;
-        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(X, CGRectGetHeight(myFrame)-MARGIN, xMagin, 20)];
+        CGFloat X = MARGINLEFT + xMagin*i +2;
+        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(X, CGRectGetHeight(myFrame)-MARGINBOTTOM, xMagin-4, MARGINBOTTOM)];
         textLabel.text = x_names[i];
+        textLabel.numberOfLines = 2;
         textLabel.font = [UIFont systemFontOfSize:10];
         textLabel.textAlignment = NSTextAlignmentCenter;
         textLabel.textColor = [UIColor blueColor];
@@ -412,11 +417,11 @@ static CGRect myFrame;
     }
     //Y轴
     for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
-        CGFloat Y = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, Y-5, MARGIN, 10)];
-        textLabel.text = [NSString stringWithFormat:@"%.0f",(maxY/Y_EVERY_MARGIN)*i];
+        CGFloat Y = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/Y_EVERY_MARGIN)*i;
+        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, Y-8, MARGINLEFT, 16)];
+        textLabel.text = [NSString stringWithFormat:@"%.1f",(maxY/Y_EVERY_MARGIN)*i];
         textLabel.font = [UIFont systemFontOfSize:10];
-        textLabel.textAlignment = NSTextAlignmentCenter;
+        textLabel.textAlignment = NSTextAlignmentRight;
         textLabel.textColor = [UIColor redColor];
         [self addSubview:textLabel];
     }
@@ -438,40 +443,40 @@ static CGRect myFrame;
     UIBezierPath *path = [UIBezierPath bezierPath];
     
     //1.x y轴的直线
-    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path moveToPoint:CGPointMake(MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(MARGIN+CGRectGetWidth(myFrame)-2*MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, CGRectGetHeight(myFrame)-MARGIN)];
-    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT, MARGINBOTTOM-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+CGRectGetWidth(myFrame)-MARGINLEFT-MARGINRIGHT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT, CGRectGetHeight(myFrame)-MARGINBOTTOM)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT, MARGINTOP-10)];
     //2.添加箭头
-    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(MARGIN-5, MARGIN+5-10)];
-    [path moveToPoint:CGPointMake(MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(MARGIN+5, MARGIN+5-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT-5, MARGINTOP+5-10)];
+    [path moveToPoint:CGPointMake(MARGINLEFT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(MARGINLEFT+5, MARGINTOP+5-10)];
     
-    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN-5, MARGIN-10+5)];
-    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN, MARGIN-10)];
-    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGIN-5, MARGIN-10+5)];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT-5, MARGINTOP-10+5)];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT, MARGINTOP-10)];
+    [path addLineToPoint:CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT-5, MARGINTOP-10+5)];
     
     //3.添加索引格
     //X轴
     for (int i=0; i<x_names.count; i++) {
-        CGFloat X = MARGIN + xMagin*(i+1);
-        CGPoint point = CGPointMake(X,CGRectGetHeight(myFrame)-MARGIN);
+        CGFloat X = MARGINLEFT + xMagin*i + xMagin/2;
+        CGPoint point = CGPointMake(X,CGRectGetHeight(myFrame)-MARGINBOTTOM);
         [path moveToPoint:point];
         [path addLineToPoint:CGPointMake(point.x, point.y-3)];
     }
     //Y轴（实际长度为200,此处比例缩小一倍使用）
     for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
-        CGFloat leftY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        CGPoint point = CGPointMake(MARGIN,leftY);
+        CGFloat leftY = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/Y_EVERY_MARGIN)*i;
+        CGPoint point = CGPointMake(MARGINLEFT,leftY);
         [path moveToPoint:point];
         [path addLineToPoint:CGPointMake(point.x+3, point.y)];
         
-        CGFloat rightY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        CGPoint pointRight = CGPointMake(CGRectGetWidth(myFrame)-MARGIN,rightY);
+        CGFloat rightY = CGRectGetHeight(myFrame)-MARGINRIGHT-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/Y_EVERY_MARGIN)*i;
+        CGPoint pointRight = CGPointMake(CGRectGetWidth(myFrame)-MARGINRIGHT,rightY);
         [path moveToPoint:pointRight];
         [path addLineToPoint:CGPointMake(pointRight.x-3, pointRight.y)];
     }
@@ -479,8 +484,8 @@ static CGRect myFrame;
     //4.添加索引格文字
     //X轴
     for (int i=0; i<x_names.count; i++) {
-        CGFloat X = MARGIN + xMagin/2 + xMagin*i;
-        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(X, CGRectGetHeight(myFrame)-MARGIN, xMagin, 20)];
+        CGFloat X = MARGINLEFT + xMagin/2 + xMagin*i;
+        UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(X, CGRectGetHeight(myFrame)-MARGINBOTTOM, xMagin, 20)];
         textLabel.text = x_names[i];
         textLabel.font = [UIFont systemFontOfSize:10];
         textLabel.textAlignment = NSTextAlignmentCenter;
@@ -489,19 +494,19 @@ static CGRect myFrame;
     }
     //Y轴
     for (int i=0; i<Y_EVERY_MARGIN+1; i++) {
-        CGFloat leftY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        UILabel *leftTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, leftY-5, MARGIN, 10)];
+        CGFloat leftY = CGRectGetHeight(myFrame)-MARGINBOTTOM-((CGRectGetHeight(myFrame)-MARGINTOP-MARGINBOTTOM)/Y_EVERY_MARGIN)*i;
+        UILabel *leftTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, leftY-8, MARGINLEFT, 16)];
         leftTextLabel.text = [NSString stringWithFormat:@"%.0f",(leftMaxY/Y_EVERY_MARGIN)*i];
         leftTextLabel.font = [UIFont systemFontOfSize:10];
-        leftTextLabel.textAlignment = NSTextAlignmentCenter;
+        leftTextLabel.textAlignment = NSTextAlignmentRight;
         leftTextLabel.textColor = [UIColor redColor];
         [self addSubview:leftTextLabel];
         
-        CGFloat rightY = CGRectGetHeight(myFrame)-MARGIN-((CGRectGetHeight(myFrame)-2*MARGIN)/Y_EVERY_MARGIN)*i;
-        UILabel *rightTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetWidth(myFrame)-MARGIN, rightY-5, MARGIN, 10)];
+        CGFloat rightY = CGRectGetHeight(myFrame)-MARGINRIGHT-((CGRectGetHeight(myFrame)-MARGINLEFT-MARGINRIGHT)/Y_EVERY_MARGIN)*i;
+        UILabel *rightTextLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetWidth(myFrame)-MARGINRIGHT, rightY-5, MARGINRIGHT, 10)];
         rightTextLabel.text = [NSString stringWithFormat:@"%.0f",(rightMaxY/Y_EVERY_MARGIN)*i];
         rightTextLabel.font = [UIFont systemFontOfSize:10];
-        rightTextLabel.textAlignment = NSTextAlignmentCenter;
+        rightTextLabel.textAlignment = NSTextAlignmentLeft;
         rightTextLabel.textColor = [UIColor redColor];
         [self addSubview:rightTextLabel];
         
@@ -516,6 +521,7 @@ static CGRect myFrame;
     [self.layer addSublayer:shapeLayer];
     
 }
+
 - (void)setNeedsDisplay{
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [self.layer.sublayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
@@ -523,13 +529,13 @@ static CGRect myFrame;
 
 
 
-
 /*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
-}
-*/
+ // Only override drawRect: if you perform custom drawing.
+ // An empty implementation adversely affects performance during animation.
+ - (void)drawRect:(CGRect)rect {
+ // Drawing code
+ }
+ */
 
 @end
+
